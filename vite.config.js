@@ -12,10 +12,6 @@ const mockAuthPlugin = () => {
     'pmahanti@allshore.io': { password: 'password123', role: 'user' },
   };
 
-  // Store globally so it persists across Vite config reloads
-  globalThis.__mfaStore = globalThis.__mfaStore || new Map();
-  const tempMfaStore = globalThis.__mfaStore;
-
   // Initialize Ethereal fake SMTP
   if (!globalThis.__etherealTransporter) {
     nodemailer.createTestAccount().then(testAccount => {
@@ -60,7 +56,9 @@ const mockAuthPlugin = () => {
             } else {
               // Generate MFA
               const mfaCode = Math.floor(100000 + Math.random() * 900000).toString();
-              tempMfaStore.set(email, mfaCode);
+              
+              // Stateless
+              const tempPayload = Buffer.from(JSON.stringify({ email, code: mfaCode })).toString('base64');
               
               // Render MFA to terminal
               console.log(`\n\x1b[36m=========================================\x1b[0m`);
@@ -92,7 +90,7 @@ const mockAuthPlugin = () => {
               return res.end(JSON.stringify({ 
                 success: true, 
                 mfaRequired: true, 
-                tempToken: email 
+                tempToken: tempPayload 
               }));
             }
           });
@@ -103,27 +101,36 @@ const mockAuthPlugin = () => {
           let body = '';
           req.on('data', chunk => { body += chunk.toString(); });
           req.on('end', () => {
-            const { email, code } = JSON.parse(body || '{}');
+            const { email, code, tempToken } = JSON.parse(body || '{}');
             res.setHeader('Content-Type', 'application/json');
 
-            const expectedCode = tempMfaStore.get(email);
-            
-            // Allow bypassing with '123456' for test continuity if store resets, or check literal expectedCode
-            if (code !== '123456' && (!expectedCode || expectedCode !== code)) {
-              console.log(`\x1b[31m[Auth Error] Failed MFA attempt for ${email}. Expected: ${expectedCode}, Got: ${code}\x1b[0m`);
+            if (!tempToken) {
               res.statusCode = 401;
-              return res.end(JSON.stringify({ error: 'Invalid or expired MFA code' }));
+              return res.end(JSON.stringify({ error: 'Missing security token' }));
             }
 
-            tempMfaStore.delete(email);
+            try {
+              const decodedRaw = Buffer.from(tempToken, 'base64').toString('ascii');
+              const expectedData = JSON.parse(decodedRaw);
 
-            console.log(`\x1b[32m[Auth Success] User ${email} verified MFA.\x1b[0m`);
-            res.statusCode = 200;
-            return res.end(JSON.stringify({
-              success: true,
-              token: `mock-token-user-${Date.now()}`,
-              user: { email, role: 'user' }
-            }));
+              if (expectedData.email !== email || (code !== '123456' && expectedData.code !== code)) {
+                console.log(`\x1b[31m[Auth Error] Failed MFA attempt for ${email}. Expected: ${expectedData.code}, Got: ${code}\x1b[0m`);
+                res.statusCode = 401;
+                return res.end(JSON.stringify({ error: 'Invalid or expired MFA code' }));
+              }
+
+              console.log(`\x1b[32m[Auth Success] User ${email} verified MFA.\x1b[0m`);
+              res.statusCode = 200;
+              return res.end(JSON.stringify({
+                success: true,
+                token: `mock-token-user-${Date.now()}`,
+                user: { email, role: 'user' }
+              }));
+            } catch (err) {
+              console.error('[Token Decode Error]: ', err);
+              res.statusCode = 401;
+              return res.end(JSON.stringify({ error: 'Corrupted security token' }));
+            }
           });
           return;
         }

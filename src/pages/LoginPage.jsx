@@ -8,7 +8,7 @@ export default function LoginPage() {
   const [mfaCode, setMfaCode] = useState('');
   
   const [isMfaStep, setIsMfaStep] = useState(false);
-  const [tempEmail, setTempEmail] = useState('');
+  const [tempToken, setTempToken] = useState('');
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
 
@@ -39,7 +39,7 @@ export default function LoginPage() {
       if (data.mfaRequired) {
         // Switch to MFA view
         setIsMfaStep(true);
-        setTempEmail(data.tempToken); // Using email as tempToken based on our mock backend
+        setTempToken(data.tempToken); // Using stateless token
       } else {
         // Admin user logged in immediately
         loginSuccess(data.user, data.token);
@@ -65,7 +65,7 @@ export default function LoginPage() {
       const res = await fetch('/api/mfa-verify', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ email: tempEmail, code: mfaCode })
+        body: JSON.stringify({ email, code: mfaCode, tempToken })
       });
       const data = await res.json();
 
