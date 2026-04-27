@@ -1,18 +1,20 @@
 import React, { useState } from 'react';
 import { Mail, Lock, KeyRound, ShieldCheck, Loader2 } from 'lucide-react';
 import { useAuthStore } from '../store/useAuthStore.js';
+import { useCandidateStore } from '../store/useCandidateStore.js';
 
 export default function LoginPage() {
   const [email, setEmail] = useState('admin1@example.com');
   const [password, setPassword] = useState('password123');
   const [mfaCode, setMfaCode] = useState('');
-  
+
   const [isMfaStep, setIsMfaStep] = useState(false);
   const [tempToken, setTempToken] = useState('');
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
 
   const loginSuccess = useAuthStore((state) => state.loginSuccess);
+  const candidates = useCandidateStore((state) => state.candidates);
 
   const handleLoginSubmit = async (e) => {
     e.preventDefault();
@@ -25,6 +27,24 @@ export default function LoginPage() {
     setLoading(true);
 
     try {
+      // ── Step 1: Check dynamically registered HR candidates first ──────────
+      const match = candidates.find(
+        (c) =>
+          (c.email === email || c.username === email) &&
+          c.password === password
+      );
+
+      if (match) {
+        // Candidate found — log them in immediately with their stored userType
+        loginSuccess(
+          { email: match.email, name: match.fullName, role: match.userType || 'user' },
+          `mock-token-candidate-${Date.now()}`
+        );
+        setLoading(false);
+        return;
+      }
+
+      // ── Step 2: Fall back to the static mock API (admins + seeded users) ──
       const res = await fetch('/api/login', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -37,11 +57,9 @@ export default function LoginPage() {
       }
 
       if (data.mfaRequired) {
-        // Switch to MFA view
         setIsMfaStep(true);
-        setTempToken(data.tempToken); // Using stateless token
+        setTempToken(data.tempToken);
       } else {
-        // Admin user logged in immediately
         loginSuccess(data.user, data.token);
       }
     } catch (err) {

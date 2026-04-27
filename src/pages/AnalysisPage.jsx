@@ -20,11 +20,53 @@ export default function AnalysisPage() {
 
   return (
     <div className="space-y-6 animate-fade-in">
-      <h1 className="text-2xl font-bold">Resume Analysis</h1>
+      <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-4">
+        <div>
+          <h1 className="text-2xl font-bold">Resume Analysis</h1>
+          {active.roleId && (
+            <div className="mt-2 inline-flex items-center gap-2 px-3 py-1.5 bg-brand-50 dark:bg-brand-900/30 text-brand-700 dark:text-brand-300 rounded-lg text-sm font-medium">
+              <span>Target Role Selected: </span>
+              <span className="uppercase tracking-wider font-bold">{active.roleId}</span>
+            </div>
+          )}
+        </div>
+      </div>
 
       <div className="grid lg:grid-cols-3 gap-6">
         <div className="lg:col-span-2 space-y-6">
-          <ScoreCard score={score} />
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <ScoreCard score={score} title="ATS Baseline Score" />
+            {active.matchPercentage !== null && (
+              <div className="card p-6 flex flex-col items-center justify-center bg-gradient-to-br from-indigo-50 to-brand-50 dark:from-indigo-950/20 dark:to-brand-900/20 border-brand-200 dark:border-brand-800">
+                <h3 className="text-sm uppercase tracking-wide text-brand-600 dark:text-brand-400 font-bold mb-4 text-center">
+                  Role Alignment Score
+                </h3>
+                <div className="relative w-36 h-36">
+                  <svg viewBox="0 0 140 140" className="w-full h-full -rotate-90">
+                    <circle cx="70" cy="70" r="56" className="stroke-white dark:stroke-slate-900" strokeWidth="10" fill="none" />
+                    <circle
+                      cx="70"
+                      cy="70"
+                      r="56"
+                      className={`${active.matchPercentage >= 70 ? 'stroke-emerald-500' : active.matchPercentage >= 50 ? 'stroke-amber-500' : 'stroke-rose-500'} transition-all duration-700`}
+                      strokeWidth="10"
+                      fill="none"
+                      strokeDasharray={2 * Math.PI * 56}
+                      strokeDashoffset={2 * Math.PI * 56 - (active.matchPercentage / 100) * (2 * Math.PI * 56)}
+                      strokeLinecap="round"
+                    />
+                  </svg>
+                  <div className="absolute inset-0 flex flex-col items-center justify-center">
+                    <div className="text-3xl font-bold tabular-nums text-brand-900 dark:text-brand-100">{Math.round(active.matchPercentage)}</div>
+                    <div className="text-xs text-brand-600/70 dark:text-brand-400/70">/ 100</div>
+                  </div>
+                </div>
+                <p className="mt-4 text-xs text-center text-slate-500 dark:text-slate-400">
+                  Calculated against the specified Job Description. See the <b>JD Match</b> tab for details.
+                </p>
+              </div>
+            )}
+          </div>
 
           <div className="card p-6">
             <h3 className="text-sm uppercase tracking-wide text-slate-500 dark:text-slate-400 font-semibold mb-4">

@@ -14,6 +14,8 @@ const MatchPage = lazy(() => import('./pages/MatchPage.jsx'));
 const RankingsPage = lazy(() => import('./pages/RankingsPage.jsx'));
 const SuggestionsPage = lazy(() => import('./pages/SuggestionsPage.jsx'));
 const MyProfilePage = lazy(() => import('./pages/MyProfilePage.jsx'));
+const CandidatesPage = lazy(() => import('./pages/CandidatesPage.jsx'));
+const RolesPage = lazy(() => import('./pages/RolesPage.jsx'));
 
 function PageFallback() {
   return (
@@ -44,6 +46,8 @@ export default function App() {
               <Route path="/match" element={<MatchPage />} />
               <Route path="/rankings" element={<RankingsPage />} />
               <Route path="/suggestions" element={<SuggestionsPage />} />
+              <Route path="/candidates" element={<CandidatesPage />} />
+              <Route path="/roles" element={<RolesPage />} />
               <Route path="/profile" element={<MyProfilePage />} />
               <Route path="*" element={<Navigate to="/" replace />} />
             </Routes>

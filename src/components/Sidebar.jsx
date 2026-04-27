@@ -1,16 +1,29 @@
 import { NavLink } from 'react-router-dom';
-import { LayoutDashboard, Upload, BarChart3, Target, Sparkles, FileText, Trophy } from 'lucide-react';
+import { LayoutDashboard, Upload, BarChart3, Target, Sparkles, FileText, Trophy, Users, Settings2 } from 'lucide-react';
+import { useAuthStore } from '../store/useAuthStore.js';
 
 const NAV = [
   { to: '/', label: 'Dashboard', icon: LayoutDashboard },
   { to: '/upload', label: 'Upload', icon: Upload },
   { to: '/analysis', label: 'Analysis', icon: BarChart3 },
   { to: '/match', label: 'JD Match', icon: Target },
-  { to: '/rankings', label: 'Rankings', icon: Trophy },
+  { to: '/rankings', label: 'Rankings', icon: Trophy, adminOnly: true },
   { to: '/suggestions', label: 'Suggestions', icon: Sparkles },
+  { to: '/candidates', label: 'Candidates', icon: Users, adminOnly: true },
+  { to: '/roles', label: 'Role Management', icon: Settings2, adminOnly: true },
 ];
 
 export default function Sidebar() {
+  const user = useAuthStore((state) => state.user);
+
+  // Filter out admin-only tabs if the current user is not an admin
+  const visibleNav = NAV.filter(navItem => {
+    if (navItem.adminOnly && user?.role !== 'admin') {
+      return false;
+    }
+    return true;
+  });
+
   return (
     <aside className="hidden md:flex w-64 flex-col bg-white dark:bg-slate-900 border-r border-slate-200 dark:border-slate-800 p-4">
       <div className="flex items-center gap-2 px-2 py-3 mb-4">
@@ -24,7 +37,7 @@ export default function Sidebar() {
       </div>
 
       <nav className="flex flex-col gap-1">
-        {NAV.map(({ to, label, icon: Icon }) => (
+        {visibleNav.map(({ to, label, icon: Icon }) => (
           <NavLink
             key={to}
             to={to}
