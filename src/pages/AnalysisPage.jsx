@@ -35,7 +35,7 @@ export default function AnalysisPage() {
       <div className="grid lg:grid-cols-3 gap-6">
         <div className="lg:col-span-2 space-y-6">
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            <ScoreCard score={score} title="ATS Baseline Score" />
+            <ScoreCard score={score} title="Talent Fit Baseline Score" />
             {active.matchPercentage !== null && (
               <div className="card p-6 flex flex-col items-center justify-center bg-gradient-to-br from-indigo-50 to-brand-50 dark:from-indigo-950/20 dark:to-brand-900/20 border-brand-200 dark:border-brand-800">
                 <h3 className="text-sm uppercase tracking-wide text-brand-600 dark:text-brand-400 font-bold mb-4 text-center">

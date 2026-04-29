@@ -187,7 +187,7 @@ function ActiveCandidateCard({ active, blind }) {
   return (
     <div className="card p-5">
       <h3 className="text-sm uppercase tracking-wide text-slate-500 dark:text-slate-400 font-semibold mb-3">
-        Active Candidate
+        Recent Candidate
       </h3>
       <dl className="space-y-2 text-sm">
         <Row k="Name" v={blind ? '-- hidden --' : active.profile.name || '--'} />

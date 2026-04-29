@@ -7,7 +7,7 @@ import ProgressBar from './ProgressBar.jsx';
  *   - score: object returned by scoreResume()
  *   - title: optional override
  */
-export default function ScoreCard({ score, title = 'ATS Score' }) {
+export default function ScoreCard({ score, title = 'Talent Fit Score' }) {
   const total = score?.total ?? 0;
   const tone = total >= 75 ? 'success' : total >= 55 ? 'warning' : 'danger';
   const ringColor =
